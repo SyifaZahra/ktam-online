@@ -1,4 +1,5 @@
 import Home from "@/pages/Home.vue";
+import routerAdmin from "@/routers/routerAdmin";
 import { createRouter, createWebHistory } from "vue-router";
 
 export default createRouter({
@@ -27,6 +28,11 @@ export default createRouter({
          path: '/registration/application',
          name: 'application-letter',
          component: () => import('@/pages/ApplicationLetter.vue')
+      },
+      {
+         path: '/admin',
+         component: () => import('@/components/layouts/AdminLayout.vue'),
+         children: routerAdmin
       }
    ]
 })

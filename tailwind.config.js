@@ -10,6 +10,7 @@ export default {
     extend: {
       colors: {
         'primary-lighter': '#B9EDFF',
+        'primary-lighter-2': '#87B9FF',
         'primary-darker': '#1677FE',
         'btn-gradient-from': '#0EF68D',
         'btn-gradient-to': '#13C3FE',

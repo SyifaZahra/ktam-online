@@ -13,9 +13,7 @@ export function useInView (elements: InViewParams, rootElement: ShallowRef<HTMLE
 
    const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-         // console.log(entry);
          const key = Object.keys(elements).find((key) => elements[key].value === entry.target);
-         console.log(key);
          if (key) {
             inView[key] = entry.isIntersecting;
          }
