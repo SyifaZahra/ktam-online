@@ -7,13 +7,17 @@ import stample from '@/assets/signatures/stample.png';
 import SignaturePad from 'signature_pad';
 import trimCanvas from '@/utils/trimCanvas';
 import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
+import useEventListener from '@/hooks/useEventListener';
 
-const a4Paper = shallowRef<HTMLDivElement>()
+const a4PaperPage1 = shallowRef<HTMLDivElement>()
+const a4PaperPage2 = shallowRef<HTMLDivElement>()
 const saveDoc = () => {
-   if (a4Paper.value) {
-      a4Paper.value.style.display = 'block'
-      saveToPDF(a4Paper.value, 'blanko-pendaftaran-kta-inpeksi')
-      a4Paper.value.style.display = 'hidden'
+   if (a4PaperPage1.value && a4PaperPage2.value) {
+      a4PaperPage1.value.style.display = 'block'
+      a4PaperPage2.value.style.display = 'block'
+      saveToPDF([a4PaperPage1.value, a4PaperPage2.value], 'blanko-pendaftaran-kta-inpeksi')
+      a4PaperPage1.value.style.display = 'none'
+      a4PaperPage2.value.style.display = 'none'
    }
 }
 
@@ -24,16 +28,15 @@ const
    canvasIsShown = ref(false);
 let signaturePad: SignaturePad | undefined = undefined
 function resizeCanvas() {
-   if (!signatureCanvas.value) return
+   if (!signatureCanvas.value || !signaturePad) return
+
    const ratio = Math.max(window.devicePixelRatio || 1, 1);
    signatureCanvas.value.width = signatureCanvas.value.offsetWidth * ratio;
    signatureCanvas.value.height = signatureCanvas.value.offsetHeight * ratio;
    signatureCanvas.value.getContext("2d")?.scale(ratio, ratio);
 
-   if (signaturePad) {
-      signaturePad.minWidth = 2.5;
-      signaturePad.maxWidth = 7;
-   } 
+   signaturePad.minWidth = 2.5;
+   signaturePad.maxWidth = 7;
 
    signaturePad?.clear();
 }
@@ -56,54 +59,62 @@ const showSignatureCanvas = (show: boolean) => {
       canvasIsShown.value = false
    }
 }
+
+useEventListener(window, 'resize', () => {
+   if (!signatureCanvas.value || !signaturePad) return
+
+   const ratio = Math.max(window.devicePixelRatio || 1, 1);
+   signatureCanvas.value.width = signatureCanvas.value.offsetWidth * ratio;
+   signatureCanvas.value.height = signatureCanvas.value.offsetHeight * ratio;
+   signatureCanvas.value.getContext("2d")?.scale(ratio, ratio);
+
+   signaturePad.minWidth = 2.5;
+   signaturePad.maxWidth = 7;
+
+   signaturePad?.clear();
+})
+
 onMounted(() => {
    if (signatureCanvas.value) {
       signaturePad = new SignaturePad(signatureCanvas.value);
       resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
    }
 })
 onUnmounted(() => {
-   window.removeEventListener("resize", resizeCanvas);
    document.body.style.overflow = 'auto'
 })
 </script>
 
 <template>
-   <div class="bg-[#EEEDED]">
-      <div class="min-h-screen flex flex-col lg:flex-row justify-center items-center lg:items-start gap-4">
-         <!-- ACTUAL PDF -->
-         <div ref="a4Paper" class="fixed -z-50" :style="{ display: 'none' }">
+   <div class="bg-gray-200 h-max">
+      <div class="min-h-screen h-full flex flex-col lg:flex-row justify-center items-center lg:items-start gap-4">
+         <!-- ACTUAL PDF PAGE-1 -->
+         <div ref="a4PaperPage1" class="fixed -z-50" :style="{ display: 'none' }">
             <div class="flex flex-col relative bg-white py-10 px-16"
-               :style="{ height: '297mm', width: '210mm', minHeight: '297mm', minWidth: '210mm', fontFamily: 'serif'}">,
+               :style="{ height: '297mm', width: '210mm', minHeight: '297mm', minWidth: '210mm', fontFamily: 'serif'}">
                <div class="text-center">
                   <img :src="logoIkapeksi" class="inline-block w-[10em]">
                   <h1 class="text-2xl font-bold mt-3">BLANKO PENDAFTARAN <br> KTA INPEKSI</h1>
                </div>
-   
-               <div class="mt-10 grow">
+
+               <div class="mt-10">
                   <h1 class="text-xl">Data Diri</h1>
                   <table class="ml-6">
                      <tbody>
                         <tr>
-                           <td class="min-w-[20ch] align-top">No. Pandaftaran</td>
+                           <td class="min-w-[20ch] align-top">Nama Lengkap</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Nama Lengkap (Gelar)</td>
+                           <td class="align-top">NIK</td>
                            <td class="align-top">:</td>
                            <td class="align-top"> Lorem ipsum dolor sit amet consectetur adipisicing elit. Temporibus
                               labore dolor obcaecati voluptate nobis, praesentium illo magni. Vel nostrum nobis odio
                               nesciunt nisi cupiditate delectus iure quaerat, odit facere expedita.</td>
                         </tr>
                         <tr>
-                           <td class="align-top">NIK</td>
-                           <td class="align-top">:</td>
-                           <td class="align-top w-full">......................................................</td>
-                        </tr>
-                        <tr>
-                           <td class="align-top">Tempat, Tanggal Lahir</td>
+                           <td class="align-top">Tempat, Tangga Lahir</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
@@ -113,7 +124,12 @@ onUnmounted(() => {
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Ranting, Cabang, Wilayah</td>
+                           <td class="align-top">Agama</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="align-top">Email</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
@@ -123,7 +139,7 @@ onUnmounted(() => {
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Status</td>
+                           <td class="align-top">Profesis</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
@@ -133,31 +149,123 @@ onUnmounted(() => {
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Pendidikan Terakhir</td>
+                           <td class="align-top">Nama Instansi</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Riwayat Pendidikan</td>
+                           <td class="align-top">Lembaga Pemagangan Jepang</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                         <tr>
-                           <td class="align-top">Organisasi</td>
+                           <td class="align-top">Tahun Keberangkatan</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="align-top">Tahun Kepulangan</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="align-top">Nama Perusahaan Jepang</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="align-top">Bidang Kerja di Jepang</td>
                            <td class="align-top">:</td>
                            <td class="align-top w-full">......................................................</td>
                         </tr>
                      </tbody>
                   </table>
                </div>
-   
+            </div>
+         </div>
+         <!-- ACTUAL PDF PAGE-2 -->
+         <div ref="a4PaperPage2" class="fixed -z-50" :style="{ display: 'none' }">
+            <div class="flex flex-col relative bg-white py-10 px-16"
+               :style="{ height: '297mm', width: '210mm', minHeight: '297mm', minWidth: '210mm', fontFamily: 'serif'}">
+               <div>
+                  <h1 class="text-[1.25em]">Data Alamat</h1>
+                  <table class="ml-[1.5em]">
+                     <tbody>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Profinsi</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Kabupaten</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Desa / Kelurahan</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Alamat</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Kode Pos</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+
+               <div class="mt-10 grow">
+                  <h1 class="text-[1.25em]">Data Usaha / Pekerjaan</h1>
+                  <table class="ml-[1.5em]">
+                     <tbody>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Nama Usaha</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Jabatan</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Alamat Usaha</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Nama Instansi Bekerja</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Bidang Usaha</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Alamat Instansi Bekerja</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                        <tr>
+                           <td class="min-w-[20ch] align-top">Tahun Berdiri</td>
+                           <td class="align-top">:</td>
+                           <td class="align-top w-full">......................................................</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+
                <div class="flex justify-between my-10">
                   <div class="relative min-w-40 text-center">
                      <h1>Pemohon</h1>
-                     <div v-if="!sigDataUrl" @click="showSignatureCanvas(true)"
-                        class="h-28 w-48 px-8 bg-gray-200 inline-flex justify-center items-center cursor-pointer text-sm">
-                        klik untuk tanda tangan
-                     </div>
                      <img v-if="sigDataUrl" :src="sigDataUrl" :class="{'-rotate-90 pl-10 pr-6' : signatureOrientation == 'landscape', 'pb-6': signatureOrientation != 'landscape'}" class="mt-[1.3rem] absolute z-10 top-0 left-0 w-full h-full object-contain">
                      <p :class="{'mt-28': sigDataUrl}">Mr.Anonimous</p>
                   </div>
@@ -176,36 +284,32 @@ onUnmounted(() => {
             </div>
          </div>
 
+         <!-- DISPLAYED PDF -->
          <div class="flex flex-col relative bg-white py-[2.5em] px-[4em] w-screen md:aspect-[1/1.414] aspect-auto"
-            :style="{ maxHeight: '297mm', maxWidth: '210mm', fontSize: 'clamp(12px, 2vw, 16px)', fontFamily: 'serif' }">,
+            :style="{ maxHeight: 'auto', maxWidth: '210mm', fontSize: 'clamp(12px, 2vw, 16px)', fontFamily: 'serif' }">
             <div class="text-center">
                <img :src="logoIkapeksi" class="inline-block w-[10em]">
                <h1 class="text-[1.5em] font-bold mt-3">BLANKO PENDAFTARAN <br> KTA INPEKSI</h1>
             </div>
 
-            <div class="mt-10 grow">
+            <div class="mt-10">
                <h1 class="text-[1.25em]">Data Diri</h1>
                <table class="ml-[1.5em]">
                   <tbody>
                      <tr>
-                        <td class="min-w-[20ch] align-top">No. Pandaftaran</td>
+                        <td class="min-w-[20ch] align-top">Nama Lengkap</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Nama Lengkap (Gelar)</td>
+                        <td class="align-top">NIK</td>
                         <td class="align-top">:</td>
                         <td class="align-top"> Lorem ipsum dolor sit amet consectetur adipisicing elit. Temporibus
                            labore dolor obcaecati voluptate nobis, praesentium illo magni. Vel nostrum nobis odio
                            nesciunt nisi cupiditate delectus iure quaerat, odit facere expedita.</td>
                      </tr>
                      <tr>
-                        <td class="align-top">NIK</td>
-                        <td class="align-top">:</td>
-                        <td class="align-top w-full">......................................................</td>
-                     </tr>
-                     <tr>
-                        <td class="align-top">Tempat, Tanggal Lahir</td>
+                        <td class="align-top">Tempat, Tangga Lahir</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
@@ -215,7 +319,12 @@ onUnmounted(() => {
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Ranting, Cabang, Wilayah</td>
+                        <td class="align-top">Agama</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="align-top">Email</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
@@ -225,7 +334,7 @@ onUnmounted(() => {
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Status</td>
+                        <td class="align-top">Profesis</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
@@ -235,17 +344,108 @@ onUnmounted(() => {
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Pendidikan Terakhir</td>
+                        <td class="align-top">Nama Instansi</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Riwayat Pendidikan</td>
+                        <td class="align-top">Lembaga Pemagangan Jepang</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>
                      <tr>
-                        <td class="align-top">Organisasi</td>
+                        <td class="align-top">Tahun Keberangkatan</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="align-top">Tahun Kepulangan</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="align-top">Nama Perusahaan Jepang</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="align-top">Bidang Kerja di Jepang</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+
+            <div class="mt-10">
+               <h1 class="text-[1.25em]">Data Alamat</h1>
+               <table class="ml-[1.5em]">
+                  <tbody>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Profinsi</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Kabupaten</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Desa / Kelurahan</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Alamat</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Kode Pos</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+
+            <div class="mt-10 grow">
+               <h1 class="text-[1.25em]">Data Usaha / Pekerjaan</h1>
+               <table class="ml-[1.5em]">
+                  <tbody>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Nama Usaha</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Jabatan</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Alamat Usaha</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Nama Instansi Bekerja</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Bidang Usaha</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Alamat Instansi Bekerja</td>
+                        <td class="align-top">:</td>
+                        <td class="align-top w-full">......................................................</td>
+                     </tr>
+                     <tr>
+                        <td class="min-w-[20ch] align-top">Tahun Berdiri</td>
                         <td class="align-top">:</td>
                         <td class="align-top w-full">......................................................</td>
                      </tr>

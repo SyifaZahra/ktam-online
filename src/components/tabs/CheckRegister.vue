@@ -6,9 +6,9 @@ import TextInput from '../forms/TextInput.vue';
 <template>
    <h1 class="text-center text-3xl font-bold">Cek Pendaftaran</h1>
 
-   <form class="mt-6">
-      <TextInput placeholder="Nama Lengkap" class="border-black/50 border">Nama Lengkap</TextInput>
-      <TextInput placeholder="16 digit angka" class="border-black/50 border">NIK</TextInput>
+   <form class="mt-6 border-none">
+      <TextInput placeholder="Nama Lengkap" class="border-black/50">Nama Lengkap</TextInput>
+      <TextInput placeholder="16 digit angka" class="border-black/50">NIK</TextInput>
 
       <div class="text-center">
          <RouterLink :to="{name: 'regist-detail'}">

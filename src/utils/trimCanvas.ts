@@ -2,7 +2,7 @@ export default function trimCanvas(canvas: HTMLCanvasElement) {
    // First duplicate the canvas to not alter the original
    const 
       croppedCanvas = document.createElement('canvas'),
-      croppedCtx = croppedCanvas.getContext('2d');
+      croppedCtx = croppedCanvas.getContext('2d', { willReadFrequently: true });
 
    croppedCanvas.width = canvas.width;
    croppedCanvas.height = canvas.height;

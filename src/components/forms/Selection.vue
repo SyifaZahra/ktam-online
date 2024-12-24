@@ -4,10 +4,10 @@ const { label, defaultSelection, containerClass, defaultValue } = defineProps<{ 
 
 <template>
    <div v-bind:class="containerClass">
-      <div class="label">
+      <div class="label" v-if="label">
          <span class="label-text font-bold">{{ label }}</span>
       </div>
-      <select class="select select-bordered w-full max-w-xs" v-bind="$attrs">
+      <select class="select select-bordered w-full" v-bind="$attrs">
          <option :value="defaultValue" disabled selected>{{ defaultSelection || "-- pilih --" }}</option>
          <slot />
       </select>
